@@ -3,7 +3,6 @@ package matrix
 
 import (
 	"fmt"
-	"os"
 )
 
 // Interface that condenses basic linear algebra operations operations
@@ -128,30 +127,41 @@ func Add(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 }
 
 // Performs a substraction of a - b if the dimensions of the arrays are equal, and returns the result in a new NumberArray
-func Substract(a, b NumberArray) NumberArray {
+func Substract(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if !EqualDimensions(a, b) {
-		fmt.Errorf("matrices of different dimensions can't be substracted")
-		os.Exit(1)
+		return resultingMatrix, fmt.Errorf("matrices of different dimensions can't be substracted")
 	}
-	fmt.Println("Everything ok")
-	return nil
+	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
+	for i := 0; i < a.GetRows(); i++ {
+		for j := 0; j < a.GetColumns(); j++ {
+			operandA, _ := a.GetValue(i, j)
+			operandB, _ := b.GetValue(i, j)
+			resultingMatrix.SetValue(i, j, operandA-operandB)
+		}
+	}
+	return resultingMatrix, err
 }
 
 // Performs a elementwise multiplication of a * b if the dimensions of the arrays are equal, and returns the result in a new NumberArray
-func MultiplyElementwise(a, b NumberArray) NumberArray {
+func MultiplyElementwise(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if !EqualDimensions(a, b) {
-		fmt.Errorf("matrices of different dimensions can't be multiplied elementwise")
-		os.Exit(1)
+		return resultingMatrix, fmt.Errorf("matrices of different dimensions can't be multiplied elementwise")
 	}
-	fmt.Println("Everything ok")
-	return nil
+	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
+	for i := 0; i < a.GetRows(); i++ {
+		for j := 0; j < a.GetColumns(); j++ {
+			operandA, _ := a.GetValue(i, j)
+			operandB, _ := b.GetValue(i, j)
+			resultingMatrix.SetValue(i, j, operandA*operandB)
+		}
+	}
+	return resultingMatrix, err
 }
 
 // Returns true if the columns' size of array a matches the rows' size of array b
 func canBeMultiplied(a, b NumberArray) (ok bool, err error) {
 	if a.GetColumns() != b.GetRows() {
-		err = fmt.Errorf(`Can't multiply matrices that don't satisfy multiplication 
-		"criteria, A.columns(): %v, B.rows(): %v`, a.GetColumns(), b.GetRows())
+		err = fmt.Errorf("Can't multiply matrices that don't satisfy multiplication criteria, A.columns(): %v, B.rows(): %v", a.GetColumns(), b.GetRows())
 		return ok, err
 	}
 	return true, err
@@ -162,10 +172,7 @@ func Dot(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if ok, err := canBeMultiplied(a, b); !ok {
 		return resultingMatrix, err
 	}
-	resultingMatrix, err = NewMatrix(a.GetRows(), b.GetColumns())
-	if err != nil {
-		return resultingMatrix, err
-	}
+	resultingMatrix, _ = NewMatrix(a.GetRows(), b.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
 		for j := 0; j < b.GetColumns(); j++ {
 			sum := 0.0

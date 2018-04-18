@@ -200,22 +200,129 @@ func TestSetValue(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	a := &matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2}
-	b := &matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2}
-	c := &matrix{matrix: [][]float64{{2, 4}, {6, 8}, {10, 12}}, rows: 3, cols: 2}
 	tables := []struct {
 		a              *matrix
 		b              *matrix
 		expectedMatrix *matrix
 		expectedError  error
 	}{
-		{a, b, c, nil},
+		{
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			&matrix{matrix: [][]float64{{2, 4}, {6, 8}, {10, 12}}, rows: 3, cols: 2},
+			nil,
+		},
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3}, {3, 4, 5}, {5, 6, 7}}, rows: 3, cols: 3},
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			nil,
+			fmt.Errorf("matrices of different dimensions can't be added"),
+		},
 	}
 	for _, table := range tables {
-		resultMatrix, _ := Add(a, b)
-		v, ok := resultMatrix.(*matrix)
-		if !ok || !equalMatrices(table.expectedMatrix, v) {
-			fmt.Errorf("Shit")
+		resultMatrix, err := Add(table.a, table.b)
+		v, _ := resultMatrix.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+		if !equalErrors(table.expectedError, err) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedError, err)
+		}
+	}
+}
+
+func TestSubstract(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		b              *matrix
+		expectedMatrix *matrix
+		expectedError  error
+	}{
+		{
+			&matrix{matrix: [][]float64{{2, 4}, {6, 8}, {10, 12}}, rows: 3, cols: 2},
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			nil,
+		},
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3}, {3, 4, 5}, {5, 6, 7}}, rows: 3, cols: 3},
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			nil,
+			fmt.Errorf("matrices of different dimensions can't be substracted"),
+		},
+	}
+	for _, table := range tables {
+		resultMatrix, err := Substract(table.a, table.b)
+		v, _ := resultMatrix.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+		if !equalErrors(table.expectedError, err) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedError, err)
+		}
+	}
+}
+
+func TestMultiplyElementwise(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		b              *matrix
+		expectedMatrix *matrix
+		expectedError  error
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			&matrix{matrix: [][]float64{{1, 4}, {9, 16}, {25, 36}}, rows: 3, cols: 2},
+			nil,
+		},
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3}, {3, 4, 5}, {5, 6, 7}}, rows: 3, cols: 3},
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			nil,
+			fmt.Errorf("matrices of different dimensions can't be multiplied elementwise"),
+		},
+	}
+	for _, table := range tables {
+		resultMatrix, err := MultiplyElementwise(table.a, table.b)
+		v, _ := resultMatrix.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+		if !equalErrors(table.expectedError, err) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedError, err)
+		}
+	}
+}
+
+func TestDot(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		b              *matrix
+		expectedMatrix *matrix
+		expectedError  error
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3}, {3, 4, 5}, {5, 6, 7}}, rows: 3, cols: 3},
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			&matrix{matrix: [][]float64{{22, 28}, {40, 52}, {58, 76}}, rows: 3, cols: 2},
+			nil,
+		},
+		{
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
+			nil,
+			fmt.Errorf("Can't multiply matrices that don't satisfy multiplication criteria, A.columns(): 2, B.rows(): 3"),
+		},
+	}
+	for _, table := range tables {
+		resultMatrix, err := Dot(table.a, table.b)
+		v, _ := resultMatrix.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+		if !equalErrors(table.expectedError, err) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedError, err)
 		}
 	}
 }
