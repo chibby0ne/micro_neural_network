@@ -87,7 +87,7 @@ func (a *matrix) checkBounds(i, j int) (b bool, err error) {
 
 	}
 	if j < 0 || j >= a.cols {
-		return b, fmt.Errorf("Index %v is out of bounds for cols with size %v", j, a.rows)
+		return b, fmt.Errorf("Index %v is out of bounds for cols with size %v", j, a.cols)
 	}
 	return true, err
 }
@@ -95,9 +95,9 @@ func (a *matrix) checkBounds(i, j int) (b bool, err error) {
 // Creates a new matrix that is the transpose of the original one and assigns
 // the matrix pointer to the new matrix.
 func (a *matrix) Transpose() {
-	// var newM *matrix = &((*a).matrix)
+	// var newM *matrix = a
 	// if !a.isSquareMatrix {
-	// 	newM = newMatrix(a.cols, a.rows)
+	// 	newM = NewMatrix(a.cols, a.rows)
 	// }
 }
 
@@ -112,13 +112,19 @@ func EqualDimensions(a, b NumberArray) bool {
 }
 
 // Performs an addition of a + b if the dimensions of the arrays are equal, and returns the reuslt in a new NumberArray
-func Add(a, b NumberArray) NumberArray {
+func Add(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if !EqualDimensions(a, b) {
-		fmt.Errorf("matrices of different dimensions can't be added")
-		os.Exit(1)
+		return resultingMatrix, fmt.Errorf("matrices of different dimensions can't be added")
 	}
-	fmt.Println("Everything ok")
-	return nil
+	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
+	for i := 0; i < a.GetRows(); i++ {
+		for j := 0; j < a.GetColumns(); j++ {
+			operandA, _ := a.GetValue(i, j)
+			operandB, _ := b.GetValue(i, j)
+			resultingMatrix.SetValue(i, j, operandA+operandB)
+		}
+	}
+	return resultingMatrix, err
 }
 
 // Performs a substraction of a - b if the dimensions of the arrays are equal, and returns the result in a new NumberArray

@@ -103,3 +103,119 @@ func TestNewColumnVector(t *testing.T) {
 		}
 	}
 }
+
+func TestGetRows(t *testing.T) {
+	tables := []struct {
+		rows         int
+		cols         int
+		expectedRows int
+	}{
+		{1, 1, 1},
+		{10, 1, 10},
+		{1, 10, 1},
+	}
+	for _, table := range tables {
+		m, _ := NewMatrix(table.rows, table.cols)
+		if table.expectedRows != m.rows {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedRows, m.rows)
+		}
+	}
+}
+
+func TestGetColumns(t *testing.T) {
+	tables := []struct {
+		rows         int
+		cols         int
+		expectedCols int
+	}{
+		{1, 1, 1},
+		{10, 1, 1},
+		{1, 10, 10},
+	}
+	for _, table := range tables {
+		m, _ := NewMatrix(table.rows, table.cols)
+		if table.expectedCols != m.cols {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedCols, m.cols)
+		}
+	}
+}
+
+func TestGetValue(t *testing.T) {
+	m := matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2}
+	tables := []struct {
+		i             int
+		j             int
+		expectedValue float64
+		expectedError error
+	}{
+		{-1, 2, 0.0, fmt.Errorf("Index -1 is out of bounds for rows with size 3")},
+		{1, -1, 0.0, fmt.Errorf("Index -1 is out of bounds for cols with size 2")},
+		{0, 0, 1, nil},
+		{2, 1, 6, nil},
+		{1, 1, 4, nil},
+		{4, 3, 0.0, fmt.Errorf("Index 4 is out of bounds for rows with size 3")},
+		{2, 3, 0.0, fmt.Errorf("Index 3 is out of bounds for cols with size 2")},
+	}
+	for _, table := range tables {
+		val, err := m.GetValue(table.i, table.j)
+		if table.expectedValue != val {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedValue, val)
+		}
+		if !equalErrors(table.expectedError, err) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedError, err)
+		}
+	}
+}
+
+func TestSetValue(t *testing.T) {
+	m := matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2}
+	tables := []struct {
+		i             int
+		j             int
+		value         float64
+		expectedValue float64 // only used for tests with valid indexes
+		expectedError error
+	}{
+		{-1, 2, 0.0, 0.0, fmt.Errorf("Index -1 is out of bounds for rows with size 3")},
+		{1, -1, 10, -10, fmt.Errorf("Index -1 is out of bounds for cols with size 2")},
+		{0, 0, 5, 5, nil},
+		{2, 1, 10, 10, nil},
+		{1, 1, 4.4, 4.4, nil},
+		{4, 3, 32.2, 32.2, fmt.Errorf("Index 4 is out of bounds for rows with size 3")},
+		{2, 3, 32.2, 32.2, fmt.Errorf("Index 3 is out of bounds for cols with size 2")},
+	}
+	for _, table := range tables {
+		err := m.SetValue(table.i, table.j, table.value)
+		// Only check for set value if the indexes given are in between bounds
+		if ok, _ := m.checkBounds(table.i, table.j); ok {
+			val, _ := m.GetValue(table.i, table.j)
+			if table.expectedValue != val {
+				t.Errorf("Expected: %v, Actual: %v\n", table.expectedValue, val)
+			}
+		}
+		if !equalErrors(table.expectedError, err) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedError, err)
+		}
+	}
+}
+
+func TestAdd(t *testing.T) {
+	a := &matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2}
+	b := &matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2}
+	c := &matrix{matrix: [][]float64{{2, 4}, {6, 8}, {10, 12}}, rows: 3, cols: 2}
+	tables := []struct {
+		a              *matrix
+		b              *matrix
+		expectedMatrix *matrix
+		expectedError  error
+	}{
+		{a, b, c, nil},
+	}
+	for _, table := range tables {
+		resultMatrix, _ := Add(a, b)
+		v, ok := resultMatrix.(*matrix)
+		if !ok || !equalMatrices(table.expectedMatrix, v) {
+			fmt.Errorf("Shit")
+		}
+	}
+}
