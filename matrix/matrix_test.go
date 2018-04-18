@@ -27,7 +27,7 @@ func equalSlices(a, b [][]float64) bool {
 	if len(a[0]) != len(b[0]) {
 		return false
 	}
-	fmt.Printf("a: %v, b: %v\n", a, b)
+	// fmt.Printf("a: %v, b: %v\n", a, b)
 	for i := 0; i < len(a); i++ {
 		for j := 0; j < len(a[0]); j++ {
 			if a[i][j] != b[i][j] {
@@ -48,20 +48,16 @@ func equalErrors(err1, err2 error) bool {
 	return err1.Error() == err2.Error()
 }
 
-func TestNewMatrixPositiveBounds(t *testing.T) {
-	// v := make([][]float64, 1)
-	// v[0] = make([]float64, 1)
-	// r := [][]float64{[]float64{0}}
-	// m := &matrix{matrix: v, rows: 1, cols: 1}
+func TestNewMatrix(t *testing.T) {
 	tables := []struct {
-		rows           uint64
-		cols           uint64
+		rows           int
+		cols           int
 		expectedMatrix *matrix
 		expectedError  error
 	}{
-		// {-1, -1, nil, fmt.Errorf("Can't create a matrix with -1 rows")},
-		// {-1, 0, nil, fmt.Errorf("Can't create a matrix with -1 rows")},
-		// {1, -1, nil, fmt.Errorf("Can't create a matrix with -1 cols")},
+		{-1, -1, nil, fmt.Errorf("Can't create a matrix with -1 rows")},
+		{-1, 0, nil, fmt.Errorf("Can't create a matrix with -1 rows")},
+		{1, -1, nil, fmt.Errorf("Can't create a matrix with -1 cols")},
 		{0, 0, nil, fmt.Errorf("Can't create a matrix with 0 rows")},
 		{0, 1, nil, fmt.Errorf("Can't create a matrix with 0 rows")},
 		{1, 0, nil, fmt.Errorf("Can't create a matrix with 0 cols")},
@@ -73,7 +69,32 @@ func TestNewMatrixPositiveBounds(t *testing.T) {
 		{1, 5, &matrix{matrix: [][]float64{{0, 0, 0, 0, 0}}, rows: 1, cols: 5}, nil},
 	}
 	for _, table := range tables {
-		m, err := newMatrix(table.rows, table.cols)
+		m, err := NewMatrix(table.rows, table.cols)
+		if !equalMatrices(table.expectedMatrix, m) {
+			t.Errorf("ExpectedMatrix: %v, ActualMatrix: %v\n", table.expectedMatrix, m)
+		}
+		if !equalErrors(table.expectedError, err) {
+			t.Errorf("ExpectedError: %v, ActualError: %v", table.expectedError, err)
+		}
+	}
+}
+
+func TestNewColumnVector(t *testing.T) {
+	tables := []struct {
+		rows           int
+		expectedMatrix *matrix
+		expectedError  error
+	}{
+		{-1, nil, fmt.Errorf("Can't create a matrix with -1 rows")},
+		{0, nil, fmt.Errorf("Can't create a matrix with 0 rows")},
+		{1, &matrix{matrix: [][]float64{{0}}, rows: 1, cols: 1}, nil},
+		{2, &matrix{matrix: [][]float64{{0}, {0}}, rows: 2, cols: 1}, nil},
+		{3, &matrix{matrix: [][]float64{{0}, {0}, {0}}, rows: 3, cols: 1}, nil},
+		{4, &matrix{matrix: [][]float64{{0}, {0}, {0}, {0}}, rows: 4, cols: 1}, nil},
+		{5, &matrix{matrix: [][]float64{{0}, {0}, {0}, {0}, {0}}, rows: 5, cols: 1}, nil},
+	}
+	for _, table := range tables {
+		m, err := NewColumnVector(table.rows)
 		if !equalMatrices(table.expectedMatrix, m) {
 			t.Errorf("ExpectedMatrix: %v, ActualMatrix: %v\n", table.expectedMatrix, m)
 		}
