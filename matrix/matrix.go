@@ -1,4 +1,5 @@
-// Package matrix provides the matrix type and NumberArray interface that are used for creating manipulating and operating in linear algebra
+// Package matrix provides the matrix type and NumberArray interface that are
+// used for creating manipulating and operating in linear algebra
 package matrix
 
 import (
@@ -83,11 +84,12 @@ func (m *matrix) SetValue(i, j int, v float64) (err error) {
 // Checks that the indexes i and j are withing bounds
 func (a *matrix) checkBounds(i, j int) (b bool, err error) {
 	if i < 0 || i >= a.rows {
-		return b, fmt.Errorf("Index %v is out of bounds for rows with size %v", i, a.rows)
-
+		return b, fmt.Errorf("Index %v is out of bounds for rows with size %v",
+			i, a.rows)
 	}
 	if j < 0 || j >= a.cols {
-		return b, fmt.Errorf("Index %v is out of bounds for cols with size %v", j, a.cols)
+		return b, fmt.Errorf("Index %v is out of bounds for cols with size %v",
+			j, a.cols)
 	}
 	return true, err
 }
@@ -111,10 +113,12 @@ func EqualDimensions(a, b NumberArray) bool {
 	return a.GetRows() == b.GetRows() && a.GetColumns() == b.GetColumns()
 }
 
-// Performs an addition of a + b if the dimensions of the arrays are equal, and returns the reuslt in a new NumberArray
+// Performs an addition of a + b if the dimensions of the arrays are equal, and
+// returns the reuslt in a new NumberArray
 func Add(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if !EqualDimensions(a, b) {
-		return resultingMatrix, fmt.Errorf("matrices of different dimensions can't be added")
+		return resultingMatrix, fmt.Errorf(`matrices of different dimensions
+		can't be added`)
 	}
 	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
@@ -127,10 +131,12 @@ func Add(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	return resultingMatrix, err
 }
 
-// Performs a substraction of a - b if the dimensions of the arrays are equal, and returns the result in a new NumberArray
+// Performs a substraction of a - b if the dimensions of the arrays are equal,
+// and returns the result in a new NumberArray
 func Substract(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if !EqualDimensions(a, b) {
-		return resultingMatrix, fmt.Errorf("matrices of different dimensions can't be substracted")
+		return resultingMatrix, fmt.Errorf(`matrices of different dimensions
+		can't be substracted`)
 	}
 	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
@@ -143,10 +149,12 @@ func Substract(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	return resultingMatrix, err
 }
 
-// Performs a elementwise multiplication of a * b if the dimensions of the arrays are equal, and returns the result in a new NumberArray
+// Performs a elementwise multiplication of a * b if the dimensions of the
+// arrays are equal, and returns the result in a new NumberArray
 func MultiplyElementwise(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if !EqualDimensions(a, b) {
-		return resultingMatrix, fmt.Errorf("matrices of different dimensions can't be multiplied elementwise")
+		return resultingMatrix, fmt.Errorf(`matrices of different dimensions
+		can't be multiplied elementwise`)
 	}
 	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
@@ -162,13 +170,16 @@ func MultiplyElementwise(a, b NumberArray) (resultingMatrix NumberArray, err err
 // Returns true if the columns' size of array a matches the rows' size of array b
 func canBeMultiplied(a, b NumberArray) (ok bool, err error) {
 	if a.GetColumns() != b.GetRows() {
-		err = fmt.Errorf("Can't multiply matrices that don't satisfy multiplication criteria, A.columns(): %v, B.rows(): %v", a.GetColumns(), b.GetRows())
+		err = fmt.Errorf(`Can't multiply matrices that don't satisfy
+		multiplication criteria, A.columns(): %v, B.rows(): %v`,
+			a.GetColumns(), b.GetRows())
 		return ok, err
 	}
 	return true, err
 }
 
-// Peforms a dot product (a.k.a matrix multiplication) if the a and b can be multiplied, and returns the result in a new NumberArray
+// Peforms a dot product (a.k.a matrix multiplication) if the a and b can be
+// multiplied, and returns the result in a new NumberArray
 func Dot(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if ok, err := canBeMultiplied(a, b); !ok {
 		return resultingMatrix, err
@@ -188,6 +199,8 @@ func Dot(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	return resultingMatrix, err
 }
 
+// Performs a exp operation on each element of the NumberArray and returns the
+// result in a new matrix
 func Exp(a NumberArray) NumberArray {
 	resultingMatrix, _ := NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
