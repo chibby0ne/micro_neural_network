@@ -5,6 +5,7 @@ package matrix
 import (
 	"fmt"
 	"math"
+	"math/rand"
 )
 
 // Interface that condenses basic linear algebra operations operations
@@ -43,6 +44,49 @@ func NewMatrix(rows, cols int) (m *matrix, err error) {
 	m.matrix = make([][]float64, rows)
 	for i := 0; i < rows; i++ {
 		m.matrix[i] = make([]float64, cols)
+	}
+	m.rows = rows
+	m.cols = cols
+	return m, err
+}
+
+// Creates a matrix of the given rows and colums with all elements initialized
+// with val. Useful when substracting 1 - Matrix in a formula, considering that
+// 1 can be a matrix with all its elements set to 1.
+func NewInitializedMatrix(rows, cols int, val float64) (m *matrix, err error) {
+	if ok, err := checkPositiveBounds(rows, cols); !ok {
+		return m, err
+	}
+	m = new(matrix)
+	m.matrix = make([][]float64, rows)
+	for i := 0; i < rows; i++ {
+		m.matrix[i] = make([]float64, cols)
+		for j := 0; j < cols; j++ {
+			m.matrix[i][j] = val
+		}
+	}
+	m.rows = rows
+	m.cols = cols
+	return m, err
+}
+
+// Creates a random matrix of the given dimensions and whose random value is
+// scaled by the given scaler.
+// Hint: Scaler is used for initilizing the weights matrix as with a very small
+// value, considering that only between very small values the sigmoid function
+// is non-linear and at big enough values the function turns almost completely
+// flat.
+func NewRandomMatrix(rows, cols int, scaler float64) (m *matrix, err error) {
+	if ok, err := checkPositiveBounds(rows, cols); !ok {
+		return m, err
+	}
+	m = new(matrix)
+	m.matrix = make([][]float64, rows)
+	for i := 0; i < rows; i++ {
+		m.matrix[i] = make([]float64, cols)
+		for j := 0; j < cols; j++ {
+			m.matrix[i][j] = rand.Float64() * scaler
+		}
 	}
 	m.rows = rows
 	m.cols = cols
@@ -94,13 +138,35 @@ func (a *matrix) checkBounds(i, j int) (b bool, err error) {
 	return true, err
 }
 
+// Helper function for Transposing a square matrix
+func swap(val, val2 *float64) {
+	temp := *val
+	*val = *val2
+	*val2 = temp
+}
+
 // Creates a new matrix that is the transpose of the original one and assigns
-// the matrix pointer to the new matrix.
+// the matrix pointer to the new matrix. In the special case that the matrix is
+// square, it returns the same matrix object with the elements swapped
+// corresponding to the transpose operation
 func (a *matrix) Transpose() {
-	// var newM *matrix = a
-	// if !a.isSquareMatrix {
-	// 	newM = NewMatrix(a.cols, a.rows)
-	// }
+	var newMatrix *matrix
+	if a.isSquareMatrix() {
+		newMatrix = a
+		for i := 0; i < a.rows; i++ {
+			for j := i + 1; j < a.cols; j++ {
+				swap(&(newMatrix.matrix[j][i]), &(a.matrix[i][j]))
+			}
+		}
+	} else {
+		newMatrix, _ = NewMatrix(a.cols, a.rows)
+		for i := 0; i < a.rows; i++ {
+			for j := 0; j < a.cols; j++ {
+				newMatrix.matrix[j][i] = a.matrix[i][j]
+			}
+		}
+	}
+	*a = *newMatrix
 }
 
 // Checks that the matrix is square
@@ -117,8 +183,8 @@ func EqualDimensions(a, b NumberArray) bool {
 // returns the reuslt in a new NumberArray
 func Add(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if !EqualDimensions(a, b) {
-		return resultingMatrix, fmt.Errorf(`matrices of different dimensions
-		can't be added`)
+		return resultingMatrix, fmt.Errorf("matrices of different dimensions" +
+			" can't be added")
 	}
 	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
@@ -135,8 +201,8 @@ func Add(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 // and returns the result in a new NumberArray
 func Substract(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if !EqualDimensions(a, b) {
-		return resultingMatrix, fmt.Errorf(`matrices of different dimensions
-		can't be substracted`)
+		return resultingMatrix,
+			fmt.Errorf("matrices of different dimensions can't be substracted")
 	}
 	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
@@ -153,8 +219,8 @@ func Substract(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 // arrays are equal, and returns the result in a new NumberArray
 func MultiplyElementwise(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	if !EqualDimensions(a, b) {
-		return resultingMatrix, fmt.Errorf(`matrices of different dimensions
-		can't be multiplied elementwise`)
+		return resultingMatrix, fmt.Errorf("matrices of different dimensions " +
+			"can't be multiplied elementwise")
 	}
 	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
@@ -170,8 +236,8 @@ func MultiplyElementwise(a, b NumberArray) (resultingMatrix NumberArray, err err
 // Returns true if the columns' size of array a matches the rows' size of array b
 func canBeMultiplied(a, b NumberArray) (ok bool, err error) {
 	if a.GetColumns() != b.GetRows() {
-		err = fmt.Errorf(`Can't multiply matrices that don't satisfy
-		multiplication criteria, A.columns(): %v, B.rows(): %v`,
+		err = fmt.Errorf("Can't multiply matrices that don't satisfy "+
+			"multiplication criteria, A.columns(): %v, B.rows(): %v",
 			a.GetColumns(), b.GetRows())
 		return ok, err
 	}
@@ -207,6 +273,19 @@ func Exp(a NumberArray) NumberArray {
 		for j := 0; j < a.GetColumns(); j++ {
 			operandA, _ := a.GetValue(i, j)
 			resultingMatrix.SetValue(i, j, math.Exp(operandA))
+		}
+	}
+	return resultingMatrix
+}
+
+// Performs a log operation on each element of the NumberArray and returns the
+// result in a new matrix
+func Log(a NumberArray) NumberArray {
+	resultingMatrix, _ := NewMatrix(a.GetRows(), a.GetColumns())
+	for i := 0; i < a.GetRows(); i++ {
+		for j := 0; j < a.GetColumns(); j++ {
+			operandA, _ := a.GetValue(i, j)
+			resultingMatrix.SetValue(i, j, math.Log(operandA))
 		}
 	}
 	return resultingMatrix

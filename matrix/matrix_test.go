@@ -3,6 +3,7 @@ package matrix
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func equalMatrices(a, b *matrix) bool {
 	if a == nil && b == nil {
 		return true
 	}
-	// both of them must NOT null at this point otherwise they are not equal
+	// both of them must be NOT null at this point otherwise they are not equal
 	if a == nil || b == nil {
 		return false
 	}
@@ -31,7 +32,7 @@ func equalSlices(a, b [][]float64) bool {
 	// fmt.Printf("a: %v, b: %v\n", a, b)
 	for i := 0; i < len(a); i++ {
 		for j := 0; j < len(a[0]); j++ {
-			if a[i][j] != b[i][j] {
+			if a[i][j] != b[i][j] && (!math.IsNaN(a[i][j]) && !math.IsNaN(b[i][j])) {
 				return false
 			}
 		}
@@ -71,6 +72,72 @@ func TestNewMatrix(t *testing.T) {
 	}
 	for _, table := range tables {
 		m, err := NewMatrix(table.rows, table.cols)
+		if !equalMatrices(table.expectedMatrix, m) {
+			t.Errorf("ExpectedMatrix: %v, ActualMatrix: %v\n", table.expectedMatrix, m)
+		}
+		if !equalErrors(table.expectedError, err) {
+			t.Errorf("ExpectedError: %v, ActualError: %v", table.expectedError, err)
+		}
+	}
+}
+
+func TestNewInitializedMatrix(t *testing.T) {
+	tables := []struct {
+		rows           int
+		cols           int
+		val            float64
+		expectedMatrix *matrix
+		expectedError  error
+	}{
+		{-1, -1, 10, nil, fmt.Errorf("Can't create a matrix with -1 rows")},
+		{-1, 0, 0, nil, fmt.Errorf("Can't create a matrix with -1 rows")},
+		{1, -1, 15, nil, fmt.Errorf("Can't create a matrix with -1 cols")},
+		{0, 0, 10, nil, fmt.Errorf("Can't create a matrix with 0 rows")},
+		{0, 1, 5, nil, fmt.Errorf("Can't create a matrix with 0 rows")},
+		{1, 0, 10, nil, fmt.Errorf("Can't create a matrix with 0 cols")},
+		{1, 1, 12, &matrix{matrix: [][]float64{{12}}, rows: 1, cols: 1}, nil},
+		{2, 2, 10, &matrix{matrix: [][]float64{{10, 10}, {10, 10}}, rows: 2, cols: 2}, nil},
+		{3, 3, 5, &matrix{matrix: [][]float64{{5, 5, 5}, {5, 5, 5}, {5, 5, 5}}, rows: 3, cols: 3}, nil},
+		{3, 2, 4.3, &matrix{matrix: [][]float64{{4.3, 4.3}, {4.3, 4.3}, {4.3, 4.3}}, rows: 3, cols: 2}, nil},
+		{5, 1, 0.12, &matrix{matrix: [][]float64{{0.12}, {0.12}, {0.12}, {0.12}, {0.12}}, rows: 5, cols: 1}, nil},
+		{1, 5, -2.1, &matrix{matrix: [][]float64{{-2.1, -2.1, -2.1, -2.1, -2.1}}, rows: 1, cols: 5}, nil},
+	}
+	for _, table := range tables {
+		m, err := NewInitializedMatrix(table.rows, table.cols, table.val)
+		if !equalMatrices(table.expectedMatrix, m) {
+			t.Errorf("ExpectedMatrix: %v, ActualMatrix: %v\n", table.expectedMatrix, m)
+		}
+		if !equalErrors(table.expectedError, err) {
+			t.Errorf("ExpectedError: %v, ActualError: %v", table.expectedError, err)
+		}
+	}
+}
+
+func TestNewRandomMatrix(t *testing.T) {
+	tables := []struct {
+		rows           int
+		cols           int
+		expectedMatrix *matrix
+		expectedError  error
+	}{
+		{-1, -1, nil, fmt.Errorf("Can't create a matrix with -1 rows")},
+		{-1, 0, nil, fmt.Errorf("Can't create a matrix with -1 rows")},
+		{1, -1, nil, fmt.Errorf("Can't create a matrix with -1 cols")},
+		{0, 0, nil, fmt.Errorf("Can't create a matrix with 0 rows")},
+		{0, 1, nil, fmt.Errorf("Can't create a matrix with 0 rows")},
+		{1, 0, nil, fmt.Errorf("Can't create a matrix with 0 cols")},
+		// These values are calculated using Seed(1) and in this order
+		{1, 1, &matrix{matrix: [][]float64{{0.6046602879796196}}, rows: 1, cols: 1}, nil},
+		{2, 2, &matrix{matrix: [][]float64{{0.9405090880450124, 0.6645600532184904}, {0.4377141871869802, 0.4246374970712657}}, rows: 2, cols: 2}, nil},
+		{3, 3, &matrix{matrix: [][]float64{{0.6868230728671094, 0.06563701921747622, 0.15651925473279124}, {0.09696951891448456, 0.30091186058528707, 0.5152126285020654}, {0.8136399609900968, 0.21426387258237492, 0.380657189299686}}, rows: 3, cols: 3}, nil},
+		{3, 2, &matrix{matrix: [][]float64{{0.31805817433032985, 0.4688898449024232}, {0.28303415118044517, 0.29310185733681576}, {0.6790846759202163, 0.21855305259276428}}, rows: 3, cols: 2}, nil},
+		{5, 1, &matrix{matrix: [][]float64{{0.20318687664732285}, {0.360871416856906}, {0.5706732760710226}, {0.8624914374478864}, {0.29311424455385804}}, rows: 5, cols: 1}, nil},
+		{1, 5, &matrix{matrix: [][]float64{{0.29708256355629153, 0.7525730355516119, 0.2065826619136986, 0.865335013001561, 0.6967191657466347}}, rows: 1, cols: 5}, nil},
+	}
+	// To get the same values between runs
+	rand.Seed(1)
+	for _, table := range tables {
+		m, err := NewRandomMatrix(table.rows, table.cols, 1)
 		if !equalMatrices(table.expectedMatrix, m) {
 			t.Errorf("ExpectedMatrix: %v, ActualMatrix: %v\n", table.expectedMatrix, m)
 		}
@@ -413,6 +480,51 @@ func TestExp(t *testing.T) {
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+	}
+}
+
+func TestLog(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			&matrix{matrix: [][]float64{{math.Log(1), math.Log(2), math.Log(3), math.Log(4)}}, rows: 1, cols: 4},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			&matrix{matrix: [][]float64{{math.Log(-2.3), math.Log(3.3)}, {math.Log(1.2), math.Log(-4.0)}}, rows: 2, cols: 2},
+		},
+	}
+	for _, table := range tables {
+		actual := Log(table.a)
+		v, _ := actual.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+	}
+}
+
+func TestTranspose(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			&matrix{matrix: [][]float64{{1}, {2}, {3}, {4}}, rows: 4, cols: 1},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			&matrix{matrix: [][]float64{{-2.3, 1.2}, {3.3, -4.0}}, rows: 2, cols: 2},
+		},
+	}
+	for _, table := range tables {
+		table.a.Transpose()
+		if !equalMatrices(table.expectedMatrix, table.a) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, table.a)
 		}
 	}
 }
