@@ -3,6 +3,7 @@ package matrix
 
 import (
 	"fmt"
+	"math"
 )
 
 // Interface that condenses basic linear algebra operations operations
@@ -185,4 +186,15 @@ func Dot(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 		}
 	}
 	return resultingMatrix, err
+}
+
+func Exp(a NumberArray) NumberArray {
+	resultingMatrix, _ := NewMatrix(a.GetRows(), a.GetColumns())
+	for i := 0; i < a.GetRows(); i++ {
+		for j := 0; j < a.GetColumns(); j++ {
+			operandA, _ := a.GetValue(i, j)
+			resultingMatrix.SetValue(i, j, math.Exp(operandA))
+		}
+	}
+	return resultingMatrix
 }

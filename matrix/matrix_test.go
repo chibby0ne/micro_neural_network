@@ -2,6 +2,7 @@ package matrix
 
 import (
 	"fmt"
+	"math"
 	"testing"
 )
 
@@ -199,6 +200,72 @@ func TestSetValue(t *testing.T) {
 	}
 }
 
+type MockNumberArray struct {
+	rows, cols int
+}
+
+func newNockNumberArray(rows, cols int) *MockNumberArray {
+	mock := new(MockNumberArray)
+	mock.rows = rows
+	mock.cols = cols
+	return mock
+}
+
+func (numArray *MockNumberArray) GetColumns() int {
+	return numArray.cols
+}
+
+func (numArray *MockNumberArray) GetRows() int {
+	return numArray.rows
+}
+
+func (numArray *MockNumberArray) GetValue(i, j int) (float64, error) {
+	return 0, nil
+}
+
+func (numArray *MockNumberArray) SetValue(i, j int, val float64) error {
+	return nil
+}
+
+func (numArray *MockNumberArray) Transpose() {
+
+}
+
+func TestEqualDimensions(t *testing.T) {
+	tables := []struct {
+		a              NumberArray
+		b              NumberArray
+		expectedResult bool
+	}{
+		{
+			&MockNumberArray{rows: 3, cols: 10},
+			&MockNumberArray{rows: 3, cols: 10},
+			true,
+		},
+		{
+			&MockNumberArray{rows: 3, cols: 9},
+			&MockNumberArray{rows: 3, cols: 10},
+			false,
+		},
+		{
+			&MockNumberArray{rows: 2, cols: 10},
+			&MockNumberArray{rows: 3, cols: 10},
+			false,
+		},
+		{
+			&MockNumberArray{rows: 2, cols: 10},
+			&MockNumberArray{rows: 1, cols: 3},
+			false,
+		},
+	}
+	for _, table := range tables {
+		actual := EqualDimensions(table.a, table.b)
+		if table.expectedResult != actual {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedResult, actual)
+		}
+	}
+}
+
 func TestAdd(t *testing.T) {
 	tables := []struct {
 		a              *matrix
@@ -323,6 +390,29 @@ func TestDot(t *testing.T) {
 		}
 		if !equalErrors(table.expectedError, err) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedError, err)
+		}
+	}
+}
+
+func TestExp(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			&matrix{matrix: [][]float64{{math.Exp(1), math.Exp(2), math.Exp(3), math.Exp(4)}}, rows: 1, cols: 4},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			&matrix{matrix: [][]float64{{math.Exp(-2.3), math.Exp(3.3)}, {math.Exp(1.2), math.Exp(-4.0)}}, rows: 2, cols: 2},
+		},
+	}
+	for _, table := range tables {
+		actual := Exp(table.a)
+		v, _ := actual.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
 		}
 	}
 }
