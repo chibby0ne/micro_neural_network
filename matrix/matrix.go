@@ -179,58 +179,70 @@ func EqualDimensions(a, b NumberArray) bool {
 	return a.GetRows() == b.GetRows() && a.GetColumns() == b.GetColumns()
 }
 
-// Performs an addition of a + b if the dimensions of the arrays are equal, and
-// returns the reuslt in a new NumberArray
-func Add(a, b NumberArray) (resultingMatrix NumberArray, err error) {
+// Type used for handling binary math functions in binaryOperation function
+type binaryMathFunc func(a, b float64) float64
+
+// Peforms a + b and returns the result
+func add(a, b float64) float64 {
+	return a + b
+}
+
+// Peforms a - b and returns the result
+func substract(a, b float64) float64 {
+	return a - b
+}
+
+// Peforms a * b and returns the result
+func multiply(a, b float64) float64 {
+	return a * b
+}
+
+// Helper function that handles all the binary matrix operations, with the
+// exception of Dot product operation
+func binaryOperation(operation string, a, b NumberArray) (resultingMatrix NumberArray, err error) {
+	var mathFunc binaryMathFunc
+	switch operation {
+	case "Add":
+		mathFunc = add
+	case "Substract":
+		mathFunc = substract
+	case "MultiplyElementwise":
+		mathFunc = multiply
+	default:
+		return resultingMatrix, fmt.Errorf("Can't handle the given operation:"+
+			" %v\n", operation)
+	}
 	if !EqualDimensions(a, b) {
-		return resultingMatrix, fmt.Errorf("matrices of different dimensions" +
-			" can't be added")
+		return resultingMatrix, fmt.Errorf("Can't perform " + operation + " on" +
+			" matrices of different dimensions")
 	}
 	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
 		for j := 0; j < a.GetColumns(); j++ {
 			operandA, _ := a.GetValue(i, j)
 			operandB, _ := b.GetValue(i, j)
-			resultingMatrix.SetValue(i, j, operandA+operandB)
+			resultingMatrix.SetValue(i, j, mathFunc(operandA, operandB))
 		}
 	}
 	return resultingMatrix, err
+}
+
+// Performs an addition of a + b if the dimensions of the arrays are equal, and
+// returns the reuslt in a new NumberArray
+func Add(a, b NumberArray) (resultingMatrix NumberArray, err error) {
+	return binaryOperation("Add", a, b)
 }
 
 // Performs a substraction of a - b if the dimensions of the arrays are equal,
 // and returns the result in a new NumberArray
 func Substract(a, b NumberArray) (resultingMatrix NumberArray, err error) {
-	if !EqualDimensions(a, b) {
-		return resultingMatrix,
-			fmt.Errorf("matrices of different dimensions can't be substracted")
-	}
-	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
-	for i := 0; i < a.GetRows(); i++ {
-		for j := 0; j < a.GetColumns(); j++ {
-			operandA, _ := a.GetValue(i, j)
-			operandB, _ := b.GetValue(i, j)
-			resultingMatrix.SetValue(i, j, operandA-operandB)
-		}
-	}
-	return resultingMatrix, err
+	return binaryOperation("Substract", a, b)
 }
 
 // Performs a elementwise multiplication of a * b if the dimensions of the
 // arrays are equal, and returns the result in a new NumberArray
 func MultiplyElementwise(a, b NumberArray) (resultingMatrix NumberArray, err error) {
-	if !EqualDimensions(a, b) {
-		return resultingMatrix, fmt.Errorf("matrices of different dimensions " +
-			"can't be multiplied elementwise")
-	}
-	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
-	for i := 0; i < a.GetRows(); i++ {
-		for j := 0; j < a.GetColumns(); j++ {
-			operandA, _ := a.GetValue(i, j)
-			operandB, _ := b.GetValue(i, j)
-			resultingMatrix.SetValue(i, j, operandA*operandB)
-		}
-	}
-	return resultingMatrix, err
+	return binaryOperation("MultiplyElementwise", a, b)
 }
 
 // Returns true if the columns' size of array a matches the rows' size of array b
@@ -265,28 +277,117 @@ func Dot(a, b NumberArray) (resultingMatrix NumberArray, err error) {
 	return resultingMatrix, err
 }
 
-// Performs a exp operation on each element of the NumberArray and returns the
-// result in a new matrix
-func Exp(a NumberArray) NumberArray {
-	resultingMatrix, _ := NewMatrix(a.GetRows(), a.GetColumns())
-	for i := 0; i < a.GetRows(); i++ {
-		for j := 0; j < a.GetColumns(); j++ {
-			operandA, _ := a.GetValue(i, j)
-			resultingMatrix.SetValue(i, j, math.Exp(operandA))
-		}
-	}
-	return resultingMatrix
+// Type used for handling unary math functions in unaryOperation function
+type unaryMathFunc func(float64) float64
+
+// Performs a reLU function on val and returns the result
+func reLU(val float64) float64 {
+	return math.Max(0, val)
 }
 
-// Performs a log operation on each element of the NumberArray and returns the
-// result in a new matrix
-func Log(a NumberArray) NumberArray {
-	resultingMatrix, _ := NewMatrix(a.GetRows(), a.GetColumns())
+// Performs a reLU' function on val and returns the result
+func derivativeReLU(val float64) float64 {
+	if val >= 0 {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+// Performs a tanh' function on val and returns the result
+func derivativeTanh(val float64) float64 {
+	return 1 - math.Pow(math.Tanh(val), 2)
+}
+
+// Performs a sigmoid function on val and returns the result
+func sigmoid(val float64) float64 {
+	return 1 / (1 + math.Exp(-1*val))
+}
+
+// Performs a sigmoid' function on val and returns the result
+func derivativeSigmoid(val float64) float64 {
+	return sigmoid(val) * (1 - sigmoid(val))
+}
+
+// helper function that handles all the unary matrix operations
+func unaryOperation(operation string, a NumberArray) (resultingMatrix NumberArray, err error) {
+	var mathFunc unaryMathFunc
+	switch operation {
+	case "Exp":
+		mathFunc = math.Exp
+	case "Log":
+		mathFunc = math.Log
+	case "Sigmoid":
+		mathFunc = sigmoid
+	case "DerivativeSigmoid":
+		mathFunc = derivativeSigmoid
+	case "Tanh":
+		mathFunc = math.Tanh
+	case "DerivativeTanh":
+		mathFunc = derivativeTanh
+	case "ReLU":
+		mathFunc = reLU
+	case "DerivativeReLU":
+		mathFunc = derivativeReLU
+	default:
+		return resultingMatrix, fmt.Errorf("Can't handle the given operation:"+
+			" %v\n", operation)
+	}
+	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
 		for j := 0; j < a.GetColumns(); j++ {
 			operandA, _ := a.GetValue(i, j)
-			resultingMatrix.SetValue(i, j, math.Log(operandA))
+			resultingMatrix.SetValue(i, j, mathFunc(operandA))
 		}
 	}
-	return resultingMatrix
+	return resultingMatrix, err
+}
+
+// Performs a math.Exp operation on the entire NumberArray and returns the
+// result in a new NumberArray
+func Exp(a NumberArray) (resultingMatrix NumberArray, err error) {
+	return unaryOperation("Exp", a)
+}
+
+// Performs a math.Log operation on the entire NumberArray and returns the
+// result in a new NumberArray
+func Log(a NumberArray) (resultingMatrix NumberArray, err error) {
+	return unaryOperation("Log", a)
+}
+
+// Performs a Sigmoid function i.e: 1 / (1 + e^(-z)) on the entire NumberArray
+// and returns the result in a new NumberArray
+func Sigmoid(a NumberArray) (resultingMatrix NumberArray, err error) {
+	return unaryOperation("Sigmoid", a)
+}
+
+// Performs the derivative of the Sigmoid function i.e: Sigmoid(x) * (1 -
+// Sigmoid(x)) on the entire NumberArray and returns the result in a new
+// NumberArray
+func DerivativeSigmoid(a NumberArray) (resultingMatrix NumberArray, err error) {
+	return unaryOperation("DerivativeSigmoid", a)
+}
+
+// Performs Tanh function i.e: (e^z - e^(-z)) / (e^z + e^(-z)) on the entire
+// NumberArray and returns the result in a new NumberArray
+func Tanh(a NumberArray) (resultingMatrix NumberArray, err error) {
+	return unaryOperation("Tanh", a)
+}
+
+// Performs the derivative of the Tanh function i.e: 1 - (Tanh(x))^2 on the
+// entire NumberArray and returns the result in a new NumberArray
+func DerivativeTanh(a NumberArray) (resultingMatrix NumberArray, err error) {
+	return unaryOperation("DerivativeTanh", a)
+}
+
+// Performs a ReLU function i.e: max(0, x) on the NumberArray and returns the
+// result in a new NumberArray
+func ReLU(a NumberArray) (resultingMatrix NumberArray, err error) {
+	return unaryOperation("ReLU", a)
+}
+
+// Performs the derivative of the ReLU function on the NumberArray and returns
+// the result in a new NumberArray
+func DerivativeReLU(a NumberArray) (resultingMatrix NumberArray, err error) {
+	return unaryOperation("DerivativeReLU", a)
 }

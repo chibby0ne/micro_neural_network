@@ -3,3 +3,6 @@
 
 # Executable
 main
+
+# coverage output
+coverage.out

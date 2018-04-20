@@ -350,7 +350,7 @@ func TestAdd(t *testing.T) {
 			&matrix{matrix: [][]float64{{1, 2, 3}, {3, 4, 5}, {5, 6, 7}}, rows: 3, cols: 3},
 			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
 			nil,
-			fmt.Errorf("matrices of different dimensions can't be added"),
+			fmt.Errorf("Can't perform Add on matrices of different dimensions"),
 		},
 	}
 	for _, table := range tables {
@@ -382,7 +382,7 @@ func TestSubstract(t *testing.T) {
 			&matrix{matrix: [][]float64{{1, 2, 3}, {3, 4, 5}, {5, 6, 7}}, rows: 3, cols: 3},
 			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
 			nil,
-			fmt.Errorf("matrices of different dimensions can't be substracted"),
+			fmt.Errorf("Can't perform Substract on matrices of different dimensions"),
 		},
 	}
 	for _, table := range tables {
@@ -414,7 +414,7 @@ func TestMultiplyElementwise(t *testing.T) {
 			&matrix{matrix: [][]float64{{1, 2, 3}, {3, 4, 5}, {5, 6, 7}}, rows: 3, cols: 3},
 			&matrix{matrix: [][]float64{{1, 2}, {3, 4}, {5, 6}}, rows: 3, cols: 2},
 			nil,
-			fmt.Errorf("matrices of different dimensions can't be multiplied elementwise"),
+			fmt.Errorf("Can't perform MultiplyElementwise on matrices of different dimensions"),
 		},
 	}
 	for _, table := range tables {
@@ -476,7 +476,7 @@ func TestExp(t *testing.T) {
 		},
 	}
 	for _, table := range tables {
-		actual := Exp(table.a)
+		actual, _ := Exp(table.a)
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
@@ -499,7 +499,7 @@ func TestLog(t *testing.T) {
 		},
 	}
 	for _, table := range tables {
-		actual := Log(table.a)
+		actual, _ := Log(table.a)
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
@@ -525,6 +525,144 @@ func TestTranspose(t *testing.T) {
 		table.a.Transpose()
 		if !equalMatrices(table.expectedMatrix, table.a) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, table.a)
+		}
+	}
+}
+
+func TestSigmoid(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			&matrix{matrix: [][]float64{{sigmoid(1), sigmoid(2), sigmoid(3), sigmoid(4)}}, rows: 1, cols: 4},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			&matrix{matrix: [][]float64{{sigmoid(-2.3), sigmoid(3.3)}, {sigmoid(1.2), sigmoid(-4.0)}}, rows: 2, cols: 2},
+		},
+	}
+	for _, table := range tables {
+		actual, _ := Sigmoid(table.a)
+		v, _ := actual.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+	}
+}
+
+func TestDerivativeSigmoid(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			&matrix{matrix: [][]float64{{derivativeSigmoid(1), derivativeSigmoid(2), derivativeSigmoid(3), derivativeSigmoid(4)}}, rows: 1, cols: 4},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			&matrix{matrix: [][]float64{{derivativeSigmoid(-2.3), derivativeSigmoid(3.3)}, {derivativeSigmoid(1.2), derivativeSigmoid(-4.0)}}, rows: 2, cols: 2},
+		},
+	}
+	for _, table := range tables {
+		actual, _ := DerivativeSigmoid(table.a)
+		v, _ := actual.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+	}
+}
+
+func TestTanh(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			&matrix{matrix: [][]float64{{math.Tanh(1), math.Tanh(2), math.Tanh(3), math.Tanh(4)}}, rows: 1, cols: 4},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			&matrix{matrix: [][]float64{{math.Tanh(-2.3), math.Tanh(3.3)}, {math.Tanh(1.2), math.Tanh(-4.0)}}, rows: 2, cols: 2},
+		},
+	}
+	for _, table := range tables {
+		actual, _ := Tanh(table.a)
+		v, _ := actual.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+	}
+}
+
+func TestDerivativeTanh(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			&matrix{matrix: [][]float64{{derivativeTanh(1), derivativeTanh(2), derivativeTanh(3), derivativeTanh(4)}}, rows: 1, cols: 4},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			&matrix{matrix: [][]float64{{derivativeTanh(-2.3), derivativeTanh(3.3)}, {derivativeTanh(1.2), derivativeTanh(-4.0)}}, rows: 2, cols: 2},
+		},
+	}
+	for _, table := range tables {
+		actual, _ := DerivativeTanh(table.a)
+		v, _ := actual.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+	}
+}
+
+func TestReLU(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			&matrix{matrix: [][]float64{{reLU(1), reLU(2), reLU(3), reLU(4)}}, rows: 1, cols: 4},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			&matrix{matrix: [][]float64{{reLU(-2.3), reLU(3.3)}, {reLU(1.2), reLU(-4.0)}}, rows: 2, cols: 2},
+		},
+	}
+	for _, table := range tables {
+		actual, _ := ReLU(table.a)
+		v, _ := actual.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+	}
+}
+
+func TestDerivativeReLU(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			&matrix{matrix: [][]float64{{derivativeReLU(1), derivativeReLU(2), derivativeReLU(3), derivativeReLU(4)}}, rows: 1, cols: 4},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			&matrix{matrix: [][]float64{{derivativeReLU(-2.3), derivativeReLU(3.3)}, {derivativeReLU(1.2), derivativeReLU(-4.0)}}, rows: 2, cols: 2},
+		},
+	}
+	for _, table := range tables {
+		actual, _ := DerivativeReLU(table.a)
+		v, _ := actual.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
 		}
 	}
 }
