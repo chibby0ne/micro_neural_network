@@ -6,6 +6,3 @@ main
 
 # coverage output
 coverage.out
-
-# dep
-vendor/
