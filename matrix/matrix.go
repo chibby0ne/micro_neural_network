@@ -412,11 +412,12 @@ func SumByColumns(a NumberArray) NumberArray {
 	resultingMatrix, _ := NewMatrix(a.GetRows(), 1)
 	var sum float64 = 0
 	for i := 0; i < a.GetRows(); i++ {
+		sum = 0
 		for j := 0; j < a.GetColumns(); j++ {
 			operandA, _ := a.GetValue(i, j)
 			sum += operandA
 		}
-		resultingMatrix.SetValue(i, 0, 0)
+		resultingMatrix.SetValue(i, 0, sum)
 	}
 	return resultingMatrix
 }

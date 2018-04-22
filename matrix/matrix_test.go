@@ -666,3 +666,52 @@ func TestDerivativeReLU(t *testing.T) {
 		}
 	}
 }
+
+func TestMultiplyScalar(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		scalar         float64
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			5,
+			&matrix{matrix: [][]float64{{5, 10, 15, 20}}, rows: 1, cols: 4},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			0.5,
+			&matrix{matrix: [][]float64{{-1.15, 1.65}, {0.6, -2}}, rows: 2, cols: 2},
+		},
+	}
+	for _, table := range tables {
+		actual := MultiplyScalar(table.a, table.scalar)
+		v, _ := actual.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+	}
+}
+
+func TestSumByColumns(t *testing.T) {
+	tables := []struct {
+		a              *matrix
+		expectedMatrix *matrix
+	}{
+		{
+			&matrix{matrix: [][]float64{{1, 2, 3, 4}}, rows: 1, cols: 4},
+			&matrix{matrix: [][]float64{{10}}, rows: 1, cols: 1},
+		},
+		{
+			&matrix{matrix: [][]float64{{-2.3, 3.3}, {1.2, -4.0}}, rows: 2, cols: 2},
+			&matrix{matrix: [][]float64{{1}, {-2.8}}, rows: 2, cols: 1},
+		},
+	}
+	for _, table := range tables {
+		actual := SumByColumns(table.a)
+		v, _ := actual.(*matrix)
+		if !equalMatrices(table.expectedMatrix, v) {
+			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
+		}
+	}
+}
