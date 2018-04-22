@@ -395,7 +395,7 @@ func DerivativeReLU(a NumberArray) (resultingMatrix NumberArray, err error) {
 // Multiply Matrix by scalar. Useful for operations where we divide the matrix
 // elements among the number of training examples m.
 func MultiplyScalar(a NumberArray, scalar float64) NumberArray {
-	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
+	resultingMatrix, _ := NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
 		for j := 0; j < a.GetColumns(); j++ {
 			operandA, _ := a.GetValue(i, j)
@@ -409,14 +409,14 @@ func MultiplyScalar(a NumberArray, scalar float64) NumberArray {
 // the sum of the elements of all the columns for that row.
 // Emulates np.sum(X, axis=1, keepdims=True) in Python.
 func SumByColumns(a NumberArray) NumberArray {
-	resultingMatrix, _ = NewMatrix(a.GetRows(), 1)
+	resultingMatrix, _ := NewMatrix(a.GetRows(), 1)
 	var sum float64 = 0
 	for i := 0; i < a.GetRows(); i++ {
 		for j := 0; j < a.GetColumns(); j++ {
 			operandA, _ := a.GetValue(i, j)
 			sum += operandA
 		}
-		resultingMatrix.SetValue(i, 0)
+		resultingMatrix.SetValue(i, 0, 0)
 	}
 	return resultingMatrix
 }
