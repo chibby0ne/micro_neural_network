@@ -294,8 +294,8 @@ func (numArray *MockNumberArray) SetValue(i, j int, val float64) error {
 	return nil
 }
 
-func (numArray *MockNumberArray) Transpose() {
-
+func (numArray *MockNumberArray) Transpose() NumberArray {
+	return nil
 }
 
 func TestEqualDimensions(t *testing.T) {
@@ -476,7 +476,7 @@ func TestExp(t *testing.T) {
 		},
 	}
 	for _, table := range tables {
-		actual, _ := Exp(table.a)
+		actual := Exp(table.a)
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
@@ -499,7 +499,7 @@ func TestLog(t *testing.T) {
 		},
 	}
 	for _, table := range tables {
-		actual, _ := Log(table.a)
+		actual := Log(table.a)
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
@@ -544,7 +544,7 @@ func TestSigmoid(t *testing.T) {
 		},
 	}
 	for _, table := range tables {
-		actual, _ := Sigmoid(table.a)
+		actual := Sigmoid(table.a)
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
@@ -567,7 +567,7 @@ func TestDerivativeSigmoid(t *testing.T) {
 		},
 	}
 	for _, table := range tables {
-		actual, _ := DerivativeSigmoid(table.a)
+		actual := DerivativeSigmoid(table.a)
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
@@ -590,7 +590,7 @@ func TestTanh(t *testing.T) {
 		},
 	}
 	for _, table := range tables {
-		actual, _ := Tanh(table.a)
+		actual := Tanh(table.a)
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
@@ -613,7 +613,7 @@ func TestDerivativeTanh(t *testing.T) {
 		},
 	}
 	for _, table := range tables {
-		actual, _ := DerivativeTanh(table.a)
+		actual := DerivativeTanh(table.a)
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
@@ -636,7 +636,7 @@ func TestReLU(t *testing.T) {
 		},
 	}
 	for _, table := range tables {
-		actual, _ := ReLU(table.a)
+		actual := ReLU(table.a)
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)
@@ -659,7 +659,7 @@ func TestDerivativeReLU(t *testing.T) {
 		},
 	}
 	for _, table := range tables {
-		actual, _ := DerivativeReLU(table.a)
+		actual := DerivativeReLU(table.a)
 		v, _ := actual.(*matrix)
 		if !equalMatrices(table.expectedMatrix, v) {
 			t.Errorf("Expected: %v, Actual: %v\n", table.expectedMatrix, v)

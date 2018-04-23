@@ -4,6 +4,7 @@ package matrix
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 )
@@ -12,7 +13,7 @@ import (
 type NumberArray interface {
 	GetColumns() int
 	GetRows() int
-	Transpose()
+	Transpose() NumberArray
 	SetValue(i, j int, v float64) error
 	GetValue(i, j int) (float64, error)
 }
@@ -149,7 +150,7 @@ func swap(val, val2 *float64) {
 // the matrix pointer to the new matrix. In the special case that the matrix is
 // square, it returns the same matrix object with the elements swapped
 // corresponding to the transpose operation
-func (a *matrix) Transpose() {
+func (a *matrix) Transpose() NumberArray {
 	var newMatrix *matrix
 	if a.isSquareMatrix() {
 		newMatrix = a
@@ -167,6 +168,7 @@ func (a *matrix) Transpose() {
 		}
 	}
 	*a = *newMatrix
+	return a
 }
 
 // Checks that the matrix is square
@@ -330,8 +332,8 @@ func unaryOperation(operation string, a NumberArray) (resultingMatrix NumberArra
 	case "DerivativeReLU":
 		mathFunc = derivativeReLU
 	default:
-		return resultingMatrix, fmt.Errorf("Can't handle the given operation:"+
-			" %v\n", operation)
+		log.Fatal(fmt.Errorf("Can't handle the given operation:"+
+			" %v\n", operation))
 	}
 	resultingMatrix, _ = NewMatrix(a.GetRows(), a.GetColumns())
 	for i := 0; i < a.GetRows(); i++ {
@@ -345,51 +347,59 @@ func unaryOperation(operation string, a NumberArray) (resultingMatrix NumberArra
 
 // Performs a math.Exp operation on the entire NumberArray and returns the
 // result in a new NumberArray
-func Exp(a NumberArray) (resultingMatrix NumberArray, err error) {
-	return unaryOperation("Exp", a)
+func Exp(a NumberArray) (resultingMatrix NumberArray) {
+	numArray, _ := unaryOperation("Exp", a)
+	return numArray
 }
 
 // Performs a math.Log operation on the entire NumberArray and returns the
 // result in a new NumberArray
-func Log(a NumberArray) (resultingMatrix NumberArray, err error) {
-	return unaryOperation("Log", a)
+func Log(a NumberArray) (resultingMatrix NumberArray) {
+	numArray, _ := unaryOperation("Log", a)
+	return numArray
 }
 
 // Performs a Sigmoid function i.e: 1 / (1 + e^(-z)) on the entire NumberArray
 // and returns the result in a new NumberArray
-func Sigmoid(a NumberArray) (resultingMatrix NumberArray, err error) {
-	return unaryOperation("Sigmoid", a)
+func Sigmoid(a NumberArray) (resultingMatrix NumberArray) {
+	numArray, _ := unaryOperation("Sigmoid", a)
+	return numArray
 }
 
 // Performs the derivative of the Sigmoid function i.e: Sigmoid(x) * (1 -
 // Sigmoid(x)) on the entire NumberArray and returns the result in a new
 // NumberArray
-func DerivativeSigmoid(a NumberArray) (resultingMatrix NumberArray, err error) {
-	return unaryOperation("DerivativeSigmoid", a)
+func DerivativeSigmoid(a NumberArray) (resultingMatrix NumberArray) {
+	numArray, _ := unaryOperation("DerivativeSigmoid", a)
+	return numArray
 }
 
 // Performs Tanh function i.e: (e^z - e^(-z)) / (e^z + e^(-z)) on the entire
 // NumberArray and returns the result in a new NumberArray
-func Tanh(a NumberArray) (resultingMatrix NumberArray, err error) {
-	return unaryOperation("Tanh", a)
+func Tanh(a NumberArray) (resultingMatrix NumberArray) {
+	numArray, _ := unaryOperation("Tanh", a)
+	return numArray
 }
 
 // Performs the derivative of the Tanh function i.e: 1 - (Tanh(x))^2 on the
 // entire NumberArray and returns the result in a new NumberArray
-func DerivativeTanh(a NumberArray) (resultingMatrix NumberArray, err error) {
-	return unaryOperation("DerivativeTanh", a)
+func DerivativeTanh(a NumberArray) (resultingMatrix NumberArray) {
+	numArray, _ := unaryOperation("DerivativeTanh", a)
+	return numArray
 }
 
 // Performs a ReLU function i.e: max(0, x) on the NumberArray and returns the
 // result in a new NumberArray
-func ReLU(a NumberArray) (resultingMatrix NumberArray, err error) {
-	return unaryOperation("ReLU", a)
+func ReLU(a NumberArray) (resultingMatrix NumberArray) {
+	numArray, _ := unaryOperation("ReLU", a)
+	return numArray
 }
 
 // Performs the derivative of the ReLU function on the NumberArray and returns
 // the result in a new NumberArray
-func DerivativeReLU(a NumberArray) (resultingMatrix NumberArray, err error) {
-	return unaryOperation("DerivativeReLU", a)
+func DerivativeReLU(a NumberArray) (resultingMatrix NumberArray) {
+	numArray, _ := unaryOperation("DerivativeReLU", a)
+	return numArray
 }
 
 // Multiply Matrix by scalar. Useful for operations where we divide the matrix
