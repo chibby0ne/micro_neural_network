@@ -28,8 +28,12 @@ const (
 	colorsChannel int = 3
 )
 
-// These bounds and types are taken by opening and examining the datasets in jupyter notebooks
+// InputArray type is used to contain the input to the neuron.
+// Bounds and types are taken by opening and examining the datasets in jupyter notebooks
 type InputArray [m][pixelsPerDimension][pixelsPerDimension][colorsChannel]uint8
+
+// OutputArray type is used to contain the input to the neuron.
+// Bounds and types are taken by opening and examining the datasets in jupyter notebooks
 type OutputArray [1][m]int64
 
 func main() {
@@ -95,7 +99,7 @@ func main() {
 
 }
 
-// Converts the InputArray into a NumberArray
+// ToNumberArray converts the InputArray into a NumberArray
 func (inputArray *InputArray) ToNumberArray() matrix.NumberArray {
 	matrix, _ := matrix.NewMatrix(m, pixelsPerDimension*pixelsPerDimension*colorsChannel)
 	for i := 0; i < m; i++ {
@@ -112,7 +116,7 @@ func (inputArray *InputArray) ToNumberArray() matrix.NumberArray {
 	return matrix
 }
 
-// Converts the OutputArray into a NumberArray
+// ToNumberArray converts the OutputArray into a NumberArray
 func (outputArray *OutputArray) ToNumberArray() matrix.NumberArray {
 	matrix, _ := matrix.NewMatrix(1, m)
 	for i := 0; i < m; i++ {

@@ -9,3 +9,10 @@ A minimal neural network written in Go.
 
 More specifically, this is a feed-forward neural network for binary
 classification.
+
+## TODO
+
+[] Unit tests for model.go
+[] Add logging to matrix operations
+[] Add unit tests to main.go
+[] Add dockerfile, to run NN in a container
