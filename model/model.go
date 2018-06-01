@@ -8,7 +8,7 @@ import (
 	"github.com/chibby0ne/micro_neural_network/matrix"
 )
 
-// Learned Parameters of the Neural Network
+// Parameters of the Neural Network
 // W1, B1 for the hidden layer
 // W2, B2 for the output unit
 type Parameters struct {
@@ -27,8 +27,8 @@ type Hyperparameters struct {
 	numHiddenUnits  int
 }
 
-// Values calculated in the forward propagation step that are reused  in the
-// backward propagation step's calculations
+// Cache are values calculated in the forward propagation step that are reused
+// in the backward propagation step's calculations
 type Cache struct {
 	Z1 matrix.NumberArray
 	A1 matrix.NumberArray
@@ -36,8 +36,8 @@ type Cache struct {
 	A2 matrix.NumberArray
 }
 
-// Output of the backward propagation step. Used to update the parameters
-// following gradient descent algorithm
+// Gradients are outputs of the backward propagation step. Used to update the
+// parameters following gradient descent algorithm
 type Gradients struct {
 	dW2 matrix.NumberArray
 	dB2 matrix.NumberArray
@@ -45,13 +45,14 @@ type Gradients struct {
 	dB1 matrix.NumberArray
 }
 
+// Utility function for logging an error if there's any
 func handleError(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-// Initializes the models parameters (W, B)
+// InitializeParameters initializes the models parameters (W, B)
 func initializeParameters(hyperparameters *Hyperparameters, numberTrainingExamples int, numberFeatures int) *Parameters {
 	rand.Seed(1)
 	param := new(Parameters)
@@ -181,6 +182,7 @@ func updateParameters(parameters *Parameters, grads *Gradients, learningRate flo
 	return parameters
 }
 
+// Model represents the whole model run the shallow neural network for the number of iterations
 func Model(X, Y matrix.NumberArray, hyperparameters *Hyperparameters, numberTrainingExamples, numberFeatures int) *Parameters {
 	parameters := initializeParameters(hyperparameters, numberTrainingExamples, numberFeatures)
 
@@ -206,7 +208,7 @@ func Model(X, Y matrix.NumberArray, hyperparameters *Hyperparameters, numberTrai
 	return parameters
 }
 
-// Predicts a binary classification task from the given input
+// Predict predicts a binary classification task from the given input
 func Predict(parameters *Parameters, input matrix.NumberArray) bool {
 	yHat, _ := forwardPropagation(parameters, input)
 	val, _ := yHat.GetValue(0, 0)
